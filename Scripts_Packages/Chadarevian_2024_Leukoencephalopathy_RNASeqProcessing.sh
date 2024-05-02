@@ -85,7 +85,7 @@ echo "WARNING: This process takes about three weeks on our system using 50 threa
 echo "WARNING: The FASTQ sorting steps will use around 30GB of memory per parallel file, and less than" 
 echo "4 files analyzed in parallel (~120GB RAM) will substantially increase processing time."
 echo
-echo "If you are better at coding than I am, please improve upon this before running (lines 389-447 and/or MBJ_FASTQSorter.py scripts)."
+echo "If you are better at coding than I am, please improve upon this before running (lines 408-466 and/or MBJ_FASTQSorter.py scripts)."
 echo
 
 # Update the threads and RAM amounts to reflect the maximums available on your system
@@ -110,7 +110,8 @@ echo
 
 
 # Creating package and script path variables
-SRA_PATH="${BASEDIR}/Scripts_Packages/SRA_Toolkit_v3.1.0/bin/fasterq-dump"
+Fetch_PATH="${BASEDIR}/Scripts_Packages/SRA_Toolkit_v3.1.0/bin/prefetch"
+FQ_PATH="${BASEDIR}/Scripts_Packages/SRA_Toolkit_v3.1.0/bin/fasterq-dump"
 FASTQC_PATH="${BASEDIR}/Scripts_Packages/FastQC_v0.11.9/fastqc"
 Reformat_PATH="${BASEDIR}/Scripts_Packages/BBMap_v38.79/reformat.sh"
 BBDuk_PATH="${BASEDIR}/Scripts_Packages/BBMap_v38.79/bbduk.sh"
@@ -215,15 +216,33 @@ let "GEO_THREADS = ${NTHREADS} / $N"
 # Move into the GEO download directory
 cd "${GEO_Output}"
 
-# Initiate the semaphores and download the GEO files
+# Initiate semaphores and prefetch the SRA files from GEO
 open_sem ${N}
 for ((i=0;i<((${#ACCESSION[*]}));++i))
 do
 	
 	# Download the current accession from GEO and split into FASTQ files
-	run_with_lock "${SRA_PATH}" "${ACCESSION[i]}" --split-files --mem "${GEO_RAM}" --threads "${GEO_THREADS}"
+	run_with_lock "${Fetch_PATH}" "${ACCESSION[i]}"
 
 done && wait
+
+# Initiate semaphores and split the SRA files into FASTQ files
+open_sem ${N}
+for ((i=0;i<((${#ACCESSION[*]}));++i))
+do
+	
+	# Split the prefetch SRA files into FASTQ files
+	run_with_lock "${FQ_PATH}" "${ACCESSION[i]}" --split-files --mem "${GEO_RAM}" --threads "${GEO_THREADS}" -t "${BASEDIR}/temp/scratch"
+
+done && wait
+
+# Remove the SRA prefetch directories
+for ((i=0;i<((${#ACCESSION[*]}));++i))
+do
+	# Recursively remove each SRA directory
+	rm -r "${ACCESSION[i]}"
+
+done
 
 # Compressing the fastq files using gzip
 for file in ./*.fastq
