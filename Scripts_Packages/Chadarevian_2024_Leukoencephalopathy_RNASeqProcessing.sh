@@ -198,7 +198,7 @@ run_with_lock(){
 # ============================================== Download and Rename Files from GEO =============================================
 # ===============================================================================================================================
 
-# Where the SRA accession file is located
+# Read the GEO Accession file into an array
 IFS=$'\n' read -d '' -r -a ACCESSION < "${BASEDIR}/GEO_Accession.txt"
 
 # Set the number of semaphores that can be used based on available RAM and THREADS
