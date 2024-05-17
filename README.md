@@ -60,3 +60,5 @@ To sucessfully run the pipeline on your system, perform the following:
 	6. Review lines 91-97 of the ./Chadarevian_2024_Leukoencephalopathy/Scripts_Packages/Chadarevian_2024_Leukoencephalopathy_RNASeqProcessing.sh script to ensure settings work for your system.
 	7. Open a Terminal and activate the Python environment
 	8. Run the Chadarevian_2024_Leukoencephalopathy_RNASeqProcessing.sh script and wait, and wait, and wait..........
+
+Zenodo DOI: 10.5281/zenodo.11211703 
